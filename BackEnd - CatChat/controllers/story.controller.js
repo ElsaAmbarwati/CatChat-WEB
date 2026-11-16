@@ -22,8 +22,10 @@ const getAllPublicStories = async (req, res) => {
         s.id,
         s.content,
         s.created_at,
+        COALESCE(u.avatar, 'pf1') AS avatar,
         CASE WHEN p.id IS NOT NULL THEN TRUE ELSE FALSE END AS has_prayed
       FROM stories s
+      LEFT JOIN users u ON u.id = s.user_id
       LEFT JOIN prayers p ON p.story_id = s.id AND p.user_id = ?
       WHERE s.is_private = 0 AND s.user_id != ?
       ORDER BY s.created_at DESC
@@ -58,11 +60,13 @@ const getMyStories = async (req, res) => {
         s.is_private,
         s.created_at,
         s.updated_at,
+        COALESCE(u.avatar, 'pf1') AS avatar,
         COUNT(p.id) AS prayer_count
       FROM stories s
+      LEFT JOIN users u ON u.id = s.user_id
       LEFT JOIN prayers p ON p.story_id = s.id
       WHERE s.user_id = ?
-      GROUP BY s.id
+      GROUP BY s.id, u.avatar
       ORDER BY s.created_at DESC
     `, [userId]);
 

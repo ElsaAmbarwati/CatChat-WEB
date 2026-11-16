@@ -280,6 +280,13 @@ class _Header extends StatelessWidget {
 // Mengarah ke: Biasanya dipanggil oleh router atau tombol navigasi di file lain.
 // ==========================================
 class _AnonymousStoriesPanel extends StatelessWidget {
+  String _getAvatarAsset(dynamic avatar) {
+    if (avatar == null || avatar.toString().trim().isEmpty) return 'assets/images/pf1.png';
+    final str = avatar.toString().trim();
+    if (str.startsWith('assets/')) return str;
+    return 'assets/images/' + str + '.png';
+  }
+
   final List<Map<String, dynamic>> stories;
   final Set<int> likedStories;
   final ValueChanged<int> onToggleLike;
@@ -348,10 +355,15 @@ class _AnonymousStoriesPanel extends StatelessWidget {
                           color: Color(0xFFF4B5A3),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.person_outline,
-                          color: Color(0xFF5D4A45),
-                          size: 20,
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.asset(
+                          _getAvatarAsset(stories[index]['avatar']),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.person_outline,
+                            color: Color(0xFF5D4A45),
+                            size: 20,
+                          ),
                         ),
                       ),
                       SizedBox(width: 12),
