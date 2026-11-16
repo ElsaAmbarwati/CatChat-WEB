@@ -22,7 +22,14 @@ class ApiService { // Mendefinisikan kelas ApiService untuk mengelola semua inte
     'API_BASE_URL',
     defaultValue: 'http://localhost:3000/api',
   ); // Mendefinisikan URL dasar untuk semua endpoint API.
-  static const String _tokenKey = 'catchat_jwt_token'; // Mendefinisikan kunci string yang digunakan untuk menyimpan dan mengambil token JWT dari SharedPreferences. Ini adalah konstanta privat yang menandakan bahwa itu hanya untuk penggunaan internal kelas.
+  static const String _tokenKey = 'catchat_jwt_token';
+
+  // Membangun URI yang aman, mendukung URL absolut (http://...) maupun relatif (/api/...)
+  Uri _buildUri(String endpoint) {
+    final raw = '$baseUrl$endpoint';
+    final parsed = Uri.parse(raw);
+    return parsed.hasScheme ? parsed : Uri.base.resolve(raw);
+  }
 
   Future<void> saveToken(String token) async { // Metode asinkron untuk menyimpan token otentikasi (JWT) ke penyimpanan lokal menggunakan SharedPreferences.
     final prefs = await SharedPreferences.getInstance(); // Mendapatkan instance dari SharedPreferences. Operasi ini asinkron karena melibatkan akses ke penyimpanan.
@@ -52,13 +59,13 @@ class ApiService { // Mendefinisikan kelas ApiService untuk mengelola semua inte
 
   Future<http.Response> get(String endpoint) async { // Metode asinkron untuk melakukan permintaan HTTP GET.
     final token = await getToken(); // Mengambil token otentikasi yang tersimpan dari SharedPreferences. Mengarah ke `getToken()`.
-    final uri = Uri.parse('$baseUrl$endpoint'); // Membuat objek Uri lengkap dengan menggabungkan baseUrl dan endpoint yang diberikan.
+    final uri = _buildUri(endpoint); // Membuat objek Uri lengkap dengan menggabungkan baseUrl dan endpoint yang diberikan.
     return await http.get(uri, headers: _buildHeaders(token)); // Melakukan permintaan GET HTTP ke URI yang dibuat, meneruskan header yang dibangun (termasuk token otentikasi jika ada) yang dibuat oleh `_buildHeaders`.
   }
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async { // Metode asinkron untuk melakukan permintaan HTTP POST.
     final token = await getToken(); // Mengambil token otentikasi yang tersimpan.
-    final uri = Uri.parse('$baseUrl$endpoint'); // Membuat objek Uri lengkap untuk endpoint.
+    final uri = _buildUri(endpoint); // Membuat objek Uri lengkap untuk endpoint.
     return await http.post( // Melakukan permintaan POST HTTP.
       uri, // URL tujuan permintaan.
       headers: _buildHeaders(token), // Header HTTP, termasuk otentikasi.
@@ -68,7 +75,7 @@ class ApiService { // Mendefinisikan kelas ApiService untuk mengelola semua inte
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> body) async { // Metode asinkron untuk melakukan permintaan HTTP PUT, biasanya digunakan untuk memperbarui sumber daya yang ada.
     final token = await getToken(); // Mengambil token otentikasi yang tersimpan.
-    final uri = Uri.parse('$baseUrl$endpoint'); // Membuat objek Uri lengkap untuk endpoint.
+    final uri = _buildUri(endpoint); // Membuat objek Uri lengkap untuk endpoint.
     return await http.put( // Melakukan permintaan PUT HTTP.
       uri, // URL tujuan permintaan.
       headers: _buildHeaders(token), // Header HTTP, termasuk otentikasi.
@@ -78,7 +85,7 @@ class ApiService { // Mendefinisikan kelas ApiService untuk mengelola semua inte
 
   Future<http.Response> delete(String endpoint) async { // Metode asinkron untuk melakukan permintaan HTTP DELETE, digunakan untuk menghapus sumber daya.
     final token = await getToken(); // Mengambil token otentikasi yang tersimpan.
-    final uri = Uri.parse('$baseUrl$endpoint'); // Membuat objek Uri lengkap untuk endpoint.
+    final uri = _buildUri(endpoint); // Membuat objek Uri lengkap untuk endpoint.
     return await http.delete(uri, headers: _buildHeaders(token)); // Melakukan permintaan DELETE HTTP ke URI yang ditentukan, dengan header yang menyertakan token otentikasi jika ada.
   }
 

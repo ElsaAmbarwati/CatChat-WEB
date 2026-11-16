@@ -1,10 +1,12 @@
 // Penjelasan file dan tujuannya:
 // Nama file: server.js
-// Deskripsi: File utama yang menjalankan seluruh server Node.js.
+// Deskripsi: File utama yang menjalankan seluruh server Node.js dan menyajikan Flutter Web.
 // Mengarahkan ke/Keterkaitan:
 // - Menjalankan server di port tertentu.
 // - Menghubungkan seluruh folder routes agar bisa diakses oleh aplikasi Frontend.
+// - Menyajikan static build Flutter Web pada domain yang sama.
 
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -25,7 +27,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 // ============================================
 
-// CORS - Allow requests from Flutter app
+// CORS - Allow requests
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -46,11 +48,17 @@ app.use((req, res, next) => {
 });
 
 // ============================================
+// Static Files (Flutter Web)
+// ============================================
+const frontendBuildPath = path.join(__dirname, '../FrontEnd - CatChat/build/web');
+app.use(express.static(frontendBuildPath));
+
+// ============================================
 // Routes
 // ============================================
 
-// Health check
-app.get('/', (req, res) => {
+// Health check API
+app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     message: '🐱 CatChat (AnonHeart) API Server is running!',
@@ -60,6 +68,7 @@ app.get('/', (req, res) => {
       stories: '/api/stories',
       profile: '/api/profile',
       journals: '/api/journals',
+      ai: '/api/ai',
     },
   });
 });
@@ -71,11 +80,19 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/journals', journalRoutes);
 app.use('/api/ai', aiRoutes);
 
+// Fallback to Flutter Web index.html for client-side routing
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendBuildPath, 'index.html'));
+});
+
 // ============================================
 // Error Handling
 // ============================================
 
-// 404 handler
+// 404 handler for unmatched API routes
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -106,8 +123,9 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log('');
       console.log('==========================================');
-      console.log(`🐱 CatChat API Server`);
+      console.log(`🐱 CatChat Fullstack Server`);
       console.log(`📡 Running on http://localhost:${PORT}`);
+      console.log(`🌐 Serving Web from: ${frontendBuildPath}`);
       console.log(`📦 Database: ${process.env.DB_NAME || 'catchat'}`);
       console.log('==========================================');
       console.log('');
