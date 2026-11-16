@@ -1,6 +1,6 @@
 // Penjelasan file dan tujuannya:
 // Nama file: database.js
-// Deskripsi: File konfigurasi atau koneksi database MySQL.
+// Deskripsi: File konfigurasi atau koneksi database MySQL / TiDB Cloud.
 // Mengarahkan ke/Keterkaitan:
 // - Digunakan oleh controller dan inisialisasi tabel untuk terhubung ke MySQL.
 
@@ -13,9 +13,15 @@ const dbUser = process.env.DB_USER || process.env.MYSQLUSER || 'root';
 const dbPassword = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '';
 const dbName = process.env.DB_NAME || process.env.MYSQLDATABASE || 'catchat';
 
+// Cloud MySQL (seperti TiDB Cloud di port 4000) memerlukan koneksi terenkripsi SSL/TLS
+const sslConfig =
+  process.env.DB_SSL === 'true' || dbPort === 4000
+    ? { minVersion: 'TLSv1.2', rejectUnauthorized: true }
+    : undefined;
+
 // Create connection pool (without database specified, for initial setup if needed)
 const createPoolWithoutDB = () => {
-  return mysql.createPool({
+  const config = {
     host: dbHost,
     port: dbPort,
     user: dbUser,
@@ -23,11 +29,13 @@ const createPoolWithoutDB = () => {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-  });
+  };
+  if (sslConfig) config.ssl = sslConfig;
+  return mysql.createPool(config);
 };
 
 // Create connection pool (with database specified, for normal operations)
-const pool = mysql.createPool({
+const poolConfig = {
   host: dbHost,
   port: dbPort,
   user: dbUser,
@@ -37,6 +45,9 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   charset: 'utf8mb4',
-});
+};
+if (sslConfig) poolConfig.ssl = sslConfig;
+
+const pool = mysql.createPool(poolConfig);
 
 module.exports = { pool, createPoolWithoutDB, dbName };
