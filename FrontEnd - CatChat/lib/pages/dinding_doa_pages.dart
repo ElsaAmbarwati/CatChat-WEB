@@ -55,13 +55,9 @@ class _DindingDoaPagesState extends State<DindingDoaPages> {
       listenable: _controller,
       builder: (context, _) {
         return Scaffold(
-      backgroundColor: Color(0xFFFAF4F0),
-      resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: SafeArea(
+          backgroundColor: Color(0xFFFAF4F0),
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               child: Column(
@@ -215,8 +211,6 @@ class _DindingDoaPagesState extends State<DindingDoaPages> {
                     ),
                   ),
                 ),
-              ),
-            ),
         );
       },
     );

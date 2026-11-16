@@ -60,7 +60,7 @@ class _JournalPagesState extends State<JournalPages> {
           builder: (context, setLocalState) {
             return Scaffold(
               backgroundColor: Colors.white,
-              resizeToAvoidBottomInset: false,
+              resizeToAvoidBottomInset: true,
               body: SingleChildScrollView(
                 padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
                 child: SizedBox(
